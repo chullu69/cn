@@ -64,7 +64,8 @@ public class subnet{
 		
 	}
 } 
-		
-		
+
+
+// address= 192.168.10.0 and cidr adress=28
 
 		 
