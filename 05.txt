@@ -1,0 +1,130 @@
+//UDP SERVER
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+
+public class UDPServer {
+    public static void main(String[] args) {
+        try {
+            // Create a DatagramSocket and bind it to a specific port
+            DatagramSocket serverSocket = new DatagramSocket(12345);
+            System.out.println("UDP Server is running...");
+            byte[] receiveData = new byte[1024];
+            while (true) {
+                // Create a DatagramPacket to receive data from clients
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                // Receive data from client
+                serverSocket.receive(receivePacket);
+                // Convert the received data to a string
+
+                String message = new String(receivePacket.getData(), 0,
+                        receivePacket.getLength());
+                // Display the received message and client's address
+                System.out.println("Received from client: " + message);
+                System.out.println("Client IP: " + receivePacket.getAddress() + ",Port: " + receivePacket.getPort());
+                // Clear the receive buffer
+                receiveData = new byte[1024];
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+
+
+
+
+
+//UDP CLIENT
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+public class UDPClient {
+    public static void main(String[] args) {
+        try {
+            // Get the server's IP address
+            InetAddress serverAddress = InetAddress.getByName("localhost");
+            // Create a DatagramSocket for the client
+            DatagramSocket clientSocket = new DatagramSocket();
+            // Message to send
+            String message = "Hello, UDP Server!";
+            byte[] sendData = message.getBytes();
+            // Create a DatagramPacket to send data to the server
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
+                    serverAddress, 12345);
+            // Send the packet to the server
+            clientSocket.send(sendPacket);
+            System.out.println("Message sent to server: " + message);
+            // Close the client socket
+            clientSocket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+//TCP SERVER
+import java.io.*;
+import java.net.*;
+
+public class TCPServer {
+    public static void main(String[] args) {
+        try {
+            // Step 1: Create a ServerSocket object and bind it to a port
+            ServerSocket serverSocket = new ServerSocket(12345);
+            System.out.println("Server is listening on port 12345...");
+            // Step 2: Accept incoming client connections
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Client connected: " + clientSocket.getInetAddress());
+            // Step 3: Create input and output streams for communication
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+            // Step 4: Read data from client and send response
+            String clientMessage = in.readLine();
+            System.out.println("Client says: " + clientMessage);
+            out.println("Server received: " + clientMessage);
+            // Step 5: Close streams and sockets
+            in.close();
+            out.close();
+            clientSocket.close();
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+//TCP CLIENT
+import java.io.*;
+import java.net.*;
+
+public class TCPClient {
+    public static void main(String[] args) {
+        try {
+            // Step 1: Create a Socket object and connect to the server
+            Socket cs = new Socket("localhost", 12345);
+            // Step 2: Create input and output streams for communication
+            BufferedReader in = new BufferedReader(new InputStreamReader(cs.getInputStream()));
+            PrintWriter out = new PrintWriter(cs.getOutputStream(), true);
+            // Step 3: Send a message to the server
+            out.println("Hello, Server!");
+            // Step 4: Receive and print response from the server
+            String serverResponse = in.readLine();
+            System.out.println("Server response: " + serverResponse);
+            // Step 5: Close streams and socket
+            in.close();
+            out.close();
+            cs.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
