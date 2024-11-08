@@ -3,40 +3,35 @@
 //SERVER
 import java.io.*;
 import java.net.*;
-
-public class Server {
+public class tserver {
     public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(8080)) {
-            System.out.println("Server started and waiting for a client...");
-
-            try (Socket clientSocket = serverSocket.accept()) {
-                System.out.println("Client connected!");
-
-                // Input and Output streams for client communication
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-
-                // Send "Hello" to client and receive response
-                out.println("Hello from Server!");
-                String clientMessage = in.readLine();
-                System.out.println("Client: " + clientMessage);
-
-                // Continuously receive messages from client
-                BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-                String message;
-                while (true) {
-                    System.out.print("Enter message to client: ");
-                    message = userInput.readLine();
-                    out.println(message);
-
-                    if (message.equalsIgnoreCase("exit")) {
-                        System.out.println("Connection closed.");
-                        break;
+        try {
+            ServerSocket serverSocket = new ServerSocket(8080); // Listen on port 100
+            System.out.println("Server is listening for incoming connections...");
+            while (true) {
+                Socket clientSocket = serverSocket.accept(); // Accept incoming client connections
+                System.out.println("Client connected: " + clientSocket.getInetAddress());
+                // Create streams for reading and writing data
+                InputStream inputStream = clientSocket.getInputStream();
+                OutputStream outputStream = clientSocket.getOutputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                PrintWriter writer = new PrintWriter(outputStream, true);
+                // Receive the file name from the client
+                String fileName = reader.readLine();
+                System.out.println("Received file name: " + fileName);
+                // Specify where to save the received file
+                String savePath = "server_received_" + fileName;
+                try (FileOutputStream fileOutputStream = new FileOutputStream(savePath)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        fileOutputStream.write(buffer, 0, bytesRead);
                     }
-
-                    clientMessage = in.readLine();
-                    System.out.println("Client: " + clientMessage);
+                    System.out.println("File received and saved as: " + savePath);
                 }
+                writer.println("File received successfully.");
+                System.out.println("Client disconnected.");
+                clientSocket.close();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -50,44 +45,40 @@ public class Server {
 
 
 
-//CLIENT CODE
 import java.io.*;
 import java.net.*;
-
-public class Client {
+public class tclient{
     public static void main(String[] args) {
-        try (Socket socket = new Socket("localhost", 8080)) {
-            System.out.println("Connected to server.");
-
-            // Input and Output streams for server communication
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-
-            // Receive "Hello" from server and send response
-            String serverMessage = in.readLine();
-            System.out.println("Server: " + serverMessage);
-            out.println("Hello from Client!");
-
-            // Continuously send messages to server
-            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-            String message;
-            while (true) {
-                System.out.print("Enter message to server: ");
-                message = userInput.readLine();
-                out.println(message);
-
-                if (message.equalsIgnoreCase("exit")) {
-                    System.out.println("Connection closed.");
-                    break;
+        try {
+            Socket clientSocket = new Socket("localhost", 8080); // Connect to server on localhost and port 100
+            OutputStream outputStream = clientSocket.getOutputStream();
+            PrintWriter writer = new PrintWriter(outputStream, true);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            // Provide the path to the file you want to send
+            System.out.print("Enter the file path to send: ");
+            String filePath = reader.readLine();
+            File fileToSend = new File(filePath);     
+            if (!fileToSend.exists()) {
+                System.out.println("File not found: " + filePath);
+                return;
+            }     
+            // Send the file name to the server
+            writer.println(fileToSend.getName());    
+            try (FileInputStream fileInputStream = new FileInputStream(fileToSend)) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
                 }
-
-                serverMessage = in.readLine();
-                System.out.println("Server: " + serverMessage);
-            }
+            }  
+            // Wait for the server response
+            BufferedReader serverReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            String serverResponse = serverReader.readLine();
+            System.out.println("Server response: " + serverResponse); 
+            clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
-
 
