@@ -1,0 +1,150 @@
+//TCP FOR SAYING HELLO
+//JAVA CODE
+//SERVER
+import java.io.*;
+import java.net.*;
+
+public class HelloServer {
+    public static void main(String[] args) {
+        int port = 12345; // Port on which server listens
+
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Server started and waiting for client to connect...");
+
+            // Accept an incoming client connection
+            try (Socket clientSocket = serverSocket.accept()) {
+                System.out.println("Client connected");
+
+                // Set up streams for communication
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+                // Send and receive "Hello" messages
+                out.println("Hello from Server!");  // Server says hello
+                String messageFromClient = in.readLine();  // Receive hello from client
+
+                // Print received message from client
+                System.out.println("Client says: " + messageFromClient);
+            }
+        } catch (IOException e) {
+            System.out.println("Server exception: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+
+
+//CLIENT CODE
+import java.io.*;
+import java.net.*;
+
+public class HelloClient {
+    public static void main(String[] args) {
+        String hostname = "localhost"; // Server IP or hostname
+        int port = 12345; // Same port as server
+
+        try (Socket socket = new Socket(hostname, port)) {
+            System.out.println("Connected to server");
+
+            // Set up streams for communication
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+            // Receive and send "Hello" messages
+            String messageFromServer = in.readLine();  // Receive hello from server
+            System.out.println("Server says: " + messageFromServer);
+
+            out.println("Hello from Client!");  // Client says hello
+        } catch (IOException e) {
+            System.out.println("Client exception: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+
+
+
+##PYTHON CODE
+##SERVER
+# server.py
+
+import socket
+
+def start_server():
+    # Create a socket object
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Define the IP address and port number
+    host = '127.0.0.1'  # localhost
+    port = 65432        # Port to listen on
+
+    # Bind the socket to the host and port
+    server_socket.bind((host, port))
+
+    # Enable the server to accept connections (1 indicates the number of unaccepted connections allowed)
+    server_socket.listen(1)
+    print("Server is listening for incoming connections...")
+
+    # Wait for a connection
+    client_socket, client_address = server_socket.accept()
+    print(f"Connected by {client_address}")
+
+    # Send a "Hello from Server" message to the client
+    client_socket.sendall(b"Hello from Server")
+
+    # Receive a response from the client
+    message = client_socket.recv(1024).decode()
+    print(f"Received from client: {message}")
+
+    # Close the connection
+    client_socket.close()
+    server_socket.close()
+
+if __name__ == "__main__":
+    start_server()
+
+
+
+
+
+
+
+
+
+
+
+##CLIENT
+# client.py
+
+import socket
+
+def start_client():
+    # Create a socket object
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Define the IP address and port of the server
+    host = '127.0.0.1'  # localhost
+    port = 65432        # Port to connect to
+
+    # Connect to the server
+    client_socket.connect((host, port))
+
+    # Receive the server's message
+    message = client_socket.recv(1024).decode()
+    print(f"Received from server: {message}")
+
+    # Send a "Hello from Client" message to the server
+    client_socket.sendall(b"Hello from Client")
+
+    # Close the connection
+    client_socket.close()
+
+if __name__ == "__main__":
+    start_client()
+
